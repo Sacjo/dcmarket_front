@@ -1,61 +1,58 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import MDBox from "components/MDBox";
+import MDTypography from "components/MDTypography";
+import MDBadge from "components/MDBadge";
+import DataTable from "examples/Tables/DataTable"; 
 
-// Importa los componentes de Material Dashboard 2 React aquí
+export default function Tables() {
+  const [rows, setRows] = useState([]);
 
-function Tables() {
-    const [data, setData] = useState({ columns: [], rows: [] });
+  useEffect(() => {
+    axios.get('http://localhost:3300/proveedores')
+      .then(response => {
+        const fetchedRows = response.data.map(item => ({
+          author: <MDBox display="flex" alignItems="center" lineHeight={1}>
+                    <MDBox ml={2} lineHeight={1}>
+                      <MDTypography display="block" variant="button" fontWeight="medium">
+                        {item.nombre}
+                      </MDTypography>
+                      <MDTypography variant="caption">{item.email}</MDTypography>
+                    </MDBox>
+                  </MDBox>,
+          function: <MDTypography display="block" variant="caption" color="text" fontWeight="medium">
+                      {item.direccion}, {item.ciudad}
+                    </MDTypography>,
+          status: <MDBadge badgeContent={item.plazoentrega} color="success" variant="gradient" size="sm" />,
+          employed: <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
+                      {item.ruc}
+                    </MDTypography>,
+          action: <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
+                    Edit
+                  </MDTypography>,
+        }));
+        setRows(fetchedRows);
+      })
+      .catch(error => console.error("Error al cargar los datos de los proveedores", error));
+  }, []);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get('http://localhost:3300/proveedores');
-                // Asumiendo que la respuesta es un arreglo de objetos de proveedores
-                const rows = response.data.map((item) => ({
-                    author: <Author image={team2} name={item.name} email={item.email} />,
-                    function: <Job title={item.title} description={item.description} />,
-                    status: (
-                        <MDBox ml={-1}>
-                            <MDBadge badgeContent={item.status} color="success" variant="gradient" size="sm" />
-                        </MDBox>
-                    ),
-                    employed: (
-                        <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-                            {item.employed}
-                        </MDTypography>
-                    ),
-                    action: (
-                        <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-                            Edit
-                        </MDTypography>
-                    ),
-                }));
+  const columns = [
+    { Header: "Proveedor", accessor: "author", align: "left" },
+    { Header: "Dirección y Ciudad", accessor: "function", align: "left" },
+    { Header: "Plazo de Entrega", accessor: "status", align: "center" },
+    { Header: "RUC", accessor: "employed", align: "center" },
+    { Header: "Acciones", accessor: "action", align: "center" },
+  ];
 
-                setData((prevState) => ({
-                    ...prevState,
-                    rows,
-                }));
-            } catch (error) {
-                console.error("Hubo un error al cargar los datos de los proveedores", error);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    // Las definiciones de Author y Job pueden permanecer iguales
-
-    // Asegúrate de ajustar el retorno para usar los datos de `data`
-    return (
-        columns: [
-            { Header: "author", accessor: "author", width: "45%", align: "left" },
-            { Header: "function", accessor: "function", align: "left" },
-            { Header: "status", accessor: "status", align: "center" },
-            { Header: "employed", accessor: "employed", align: "center" },
-            { Header: "action", accessor: "action", align: "center" },
-        ],
-
-    );
+  return (
+    <MDBox pt={3}>
+      <DataTable
+        table={{ columns, rows }}
+        isSorted={false}
+        entriesPerPage={false}
+        showTotalEntries={false}
+        noEndBorder
+      />
+    </MDBox>
+  );
 }
-
-export default Tables;
